@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#000000</color>
+    <color name="white">#FFFFFF</color>
+    <color name="x_blue">#1D9BF0</color>
+    <color name="dark_gray">#333639</color>
+    <color name="light_gray">#71767B</color>
+    <color name="border_gray">#2F3336</color>
+    <color name="ripple_effect">#191D9BF0</color>
+    <color name="like_red">#F91880</color>
+</resources>

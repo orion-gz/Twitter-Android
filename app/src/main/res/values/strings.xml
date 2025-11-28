@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Twitter</string>
+    <string name="new_tweet">New tweet</string>
+    <string name="likes_count">%d Likes</string>
+    <string name="retweets_count">%d Retweets</string>
+    <string name="reply_cannot_be_empty">Reply cannot be empty</string>
+    <string name="x_logo">X Logo</string>
+    <string name="login">Log in</string>
+    <string name="create_account">Create account</string>
+    <string name="signup">Sign Up</string>
+</resources>
