@@ -10,14 +10,14 @@ data class User(
     val displayName: String,
     val email: String,
     @SerializedName("hashed_password")
-    val hashedPassword: String,
+    val hashedPassword: String? = null,
     val bio: String?,
     @SerializedName("profile_image_url")
     val profileImageUrl: String?,
     @SerializedName("profile_banner_url")
     val profileBannerUrl: String?,
     @SerializedName("created_at")
-    val createdAt: String,
+    val createdAt: String? = null,
     @SerializedName("following_count")
     val followingCount: Int,
     @SerializedName("follower_count")

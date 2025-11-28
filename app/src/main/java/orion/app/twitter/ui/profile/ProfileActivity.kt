@@ -1,5 +1,6 @@
 package orion.app.twitter.ui.profile
 
+import android.content.res.ColorStateList
 import android.graphics.Color
 import android.os.Bundle
 import android.view.View
@@ -14,8 +15,10 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.imageview.ShapeableImageView
 import orion.app.twitter.R
+import orion.app.twitter.data.network.TokenManager
 import orion.app.twitter.ui.main.TweetAdapter
 import orion.app.twitter.util.DateUtils
 
@@ -30,7 +33,7 @@ class ProfileActivity : AppCompatActivity() {
     private lateinit var displayName: TextView
     private lateinit var username: TextView
     private lateinit var bio: TextView
-    private lateinit var followButton: Button
+    private lateinit var followButton: MaterialButton
     private lateinit var tweetsRecyclerView: RecyclerView
 
     private lateinit var followingCount: TextView
@@ -103,7 +106,7 @@ class ProfileActivity : AppCompatActivity() {
         val currentUserId = orion.app.twitter.data.network.TokenManager(this).getUserId()
         tweetAdapter = TweetAdapter(
             tweets = mutableListOf(),
-            currentUserId = currentUserId, // [추가] 어댑터에 ID 전달
+            currentUserId = currentUserId,
             onLikeClicked = { tweetId -> viewModel.toggleLikeStatus(tweetId) },
             onRetweetClicked = { tweetId -> viewModel.toggleRetweetStatus(tweetId) },
             onDeleteClicked = { tweetId -> viewModel.deleteTweet(tweetId) }
@@ -170,11 +173,52 @@ class ProfileActivity : AppCompatActivity() {
                     placeholder(R.color.dark_gray)
                     error(R.color.dark_gray)
                 }
+
+                val currentUserId = TokenManager(this).getUserId()
+
+                if (currentUserId == it.userId) {
+                    setupMyProfileButton()
+                } else {
+                    setupOtherProfileButton(it.isFollowing)
+                }
             }
         }
 
         viewModel.tweets.observe(this) { tweets ->
             tweets?.let { tweetAdapter.updateTweets(it) }
+        }
+
+    }
+
+    private fun setupMyProfileButton() {
+        followButton.text = "Edit profile"
+        followButton.backgroundTintList = ColorStateList.valueOf(Color.BLACK)
+        followButton.setTextColor(Color.WHITE)
+        followButton.strokeWidth = 2
+        followButton.strokeColor = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.border_gray))
+
+        followButton.setOnClickListener {
+            // TODO: Start EditProfileActivity
+            // Toast.makeText(this, "Edit Profile clicked", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun setupOtherProfileButton(isFollowing: Boolean) {
+        if (isFollowing) {
+            followButton.text = "Following"
+            followButton.backgroundTintList = ColorStateList.valueOf(Color.BLACK)
+            followButton.setTextColor(Color.WHITE)
+            followButton.strokeWidth = 2
+            followButton.strokeColor = ColorStateList.valueOf(ContextCompat.getColor(this, R.color.border_gray))
+        } else {
+            followButton.text = "Follow"
+            followButton.backgroundTintList = ColorStateList.valueOf(Color.WHITE)
+            followButton.setTextColor(Color.BLACK)
+            followButton.strokeWidth = 0
+        }
+
+        followButton.setOnClickListener {
+            viewModel.toggleFollowStatus()
         }
     }
 }

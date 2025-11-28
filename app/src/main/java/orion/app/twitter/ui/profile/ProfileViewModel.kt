@@ -17,20 +17,22 @@ class ProfileViewModel(private val repository: TwitterRepository) : ViewModel() 
 
     private val _tweets = MutableLiveData<List<TweetWithUser>>()
     val tweets: LiveData<List<TweetWithUser>> = _tweets
+
     private var currentUserId: String? = null
 
     fun fetchProfileData(userId: String) {
+        currentUserId = userId
         viewModelScope.launch {
             repository.getUser(userId)?.let { user ->
-                _user.postValue(user)
-                loadTabContent(0)
+                _user.value = user
+                loadTabContent(0, user)
             }
         }
     }
 
-    fun loadTabContent(tabIndex: Int) {
+    fun loadTabContent(tabIndex: Int, userParam: User? = null) {
         val userId = currentUserId ?: return
-        val user = _user.value ?: return
+        val currentUserInfo = userParam ?: _user.value ?: return
 
         viewModelScope.launch {
             val tweetList = when (tabIndex) {
@@ -41,15 +43,18 @@ class ProfileViewModel(private val repository: TwitterRepository) : ViewModel() 
             }
 
             tweetList?.let { list ->
-                val tweetsWithUser = list.map { tweet ->
-                    // Likes 탭일 경우, 작성자는 '내가' 아니라 '그 글을 쓴 사람'이어야 합니다.
-                    // 하지만 현재 API 구조상 리스트에는 트윗 정보만 오고 작성자 정보(User)가 포함되지 않을 수 있습니다.
-                    // 일단은 프로필 주인(user) 정보를 그대로 쓰되,
-                    // *완벽하게 하려면 백엔드에서 Tweet 내부에 작성자 정보를 포함해서 보내줘야 합니다.*
-                    // 여기서는 편의상 프로필 주인으로 매핑합니다. (Likes 탭에서는 작성자가 다르게 보일 수 있음 주의)
-                    TweetWithUser(tweet, user)
+                val tweetsWithUsers = if (tabIndex == 2) {
+                    list.mapNotNull { tweet ->
+                        val author = repository.getUser(tweet.userId)
+                        if (author != null) TweetWithUser(tweet, author) else null
+                    }
+                } else {
+                    list.map { tweet ->
+                        TweetWithUser(tweet, currentUserInfo)
+                    }
                 }
-                _tweets.postValue(tweetsWithUser)
+
+                _tweets.postValue(tweetsWithUsers)
             }
         }
     }
@@ -90,7 +95,9 @@ class ProfileViewModel(private val repository: TwitterRepository) : ViewModel() 
     fun toggleLikeStatus(tweetId: String) {
         _tweets.value?.find { it.tweet.tweetId == tweetId }?.let { tweetWithUser ->
             toggleLike(tweetWithUser.tweet) { updatedTweet ->
-                val updatedList = _tweets.value?.map { if (it.tweet.tweetId == tweetId) it.copy(tweet = updatedTweet) else it }
+                val updatedList = _tweets.value?.map {
+                    if (it.tweet.tweetId == tweetId) it.copy(tweet = updatedTweet) else it
+                }
                 _tweets.postValue(updatedList!!)
             }
         }
@@ -99,7 +106,9 @@ class ProfileViewModel(private val repository: TwitterRepository) : ViewModel() 
     fun toggleRetweetStatus(tweetId: String) {
         _tweets.value?.find { it.tweet.tweetId == tweetId }?.let { tweetWithUser ->
             toggleRetweet(tweetWithUser.tweet) { updatedTweet ->
-                val updatedList = _tweets.value?.map { if (it.tweet.tweetId == tweetId) it.copy(tweet = updatedTweet) else it }
+                val updatedList = _tweets.value?.map {
+                    if (it.tweet.tweetId == tweetId) it.copy(tweet = updatedTweet) else it
+                }
                 _tweets.postValue(updatedList!!)
             }
         }
